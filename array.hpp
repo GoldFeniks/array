@@ -30,6 +30,30 @@ namespace feniks {
             data_end_ = data_begin_ + mul;
         }
 
+        template<typename S = size_type>
+        array(data_type* data, const S* sizes, std::enable_if_t<!Owner, const S*> offsets) :
+                data_begin_(data), data_end_(data + *sizes + *offsets), sizes_(sizes), offsets_(offsets) {}
+
+        template<typename I = size_type>
+        auto& operator[](std::enable_if_t<D == 1, const I&> index) {
+            return data_begin_[index];
+        }
+
+        template<typename I = size_type>
+        auto operator[](std::enable_if_t<D != 1, const I&> index) {
+            return array<T, D - 1, Allocator, false>(data_begin_ + index * *offsets_, sizes_ + 1, offsets_ + 1);
+        }
+
+        template<typename I = size_type>
+        const auto& operator[](std::enable_if_t<D == 1, const I&> index) const {
+            return data_begin_[index];
+        }
+
+        template<typename I = size_type>
+        const auto operator[](std::enable_if_t<D != 1, const I&> index) const {
+            return array<T, D - 1, Allocator, false>(data_begin_ + index * *offsets_, sizes_ + 1, offsets_ + 1);
+        }
+
         ~array() {
             if (Owner) {
                 for (size_t i = 0; i < *sizes_ * *offsets_; ++i)
