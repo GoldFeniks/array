@@ -23,7 +23,7 @@ namespace feniks {
 
         static constexpr auto dimensions = D;
 
-        template<typename... S, typename = std::enable_if_t<is_convertible_all_v<size_t, S...> && (sizeof...(S) == D) && Owner>>
+        template<typename... S, typename = std::enable_if_t<is_convertible_all_v<size_type, S...> && (sizeof...(S) == D) && Owner>>
         explicit array(S... sizes) : sizes_(make_sizes(sizes...)), offsets_(make_offsets()) {
             const auto mul = offsets_[0] * sizes_[0];
             data_begin_ = allocator_->allocate(mul);
@@ -54,6 +54,66 @@ namespace feniks {
             return array<T, D - 1, Allocator, false>(data_begin_ + index * *offsets_, sizes_ + 1, offsets_ + 1);
         }
 
+        template<typename I = size_t>
+        auto& at(std::enable_if_t<D == 1, const I> index) {
+            if (index >= size())
+                throw std::out_of_range("Array index out of range");
+            return data_begin_[index];
+        }
+
+        template<typename I = size_t>
+        auto at(std::enable_if_t<D != 1, const I> index) {
+            if (index >= size())
+                throw std::out_of_range("Array index out of range");
+            return array<T, D - 1, Allocator, false>(data_begin_ + index * *offsets_, sizes_ + 1, offsets_ + 1);
+        }
+
+        template<typename I = size_t>
+        const auto& at(std::enable_if_t<D == 1, const I> index) const {
+            if (index >= size())
+                throw std::out_of_range("Array index out of range");
+            return data_begin_[index];
+        }
+
+        template<typename I = size_t>
+        const auto at(std::enable_if_t<D != 1, const I> index) const {
+            if (index >= size())
+                throw std::out_of_range("Array index out of range");
+            return array<T, D - 1, Allocator, false>(data_begin_ + index * *offsets_, sizes_ + 1, offsets_ + 1);
+        }
+
+        template<typename... I, typename = std::enable_if_t<is_convertible_all_v<size_type, I...> && (sizeof...(I) == D)>>
+        auto& at(I... index) {
+            auto o = offsets_, d = data_begin_;
+            for (const auto& it : { size_type(index)... })
+                d += *o++ * it;
+            return *d;
+        };
+
+        template<typename... I, typename = std::enable_if_t<is_convertible_all_v<size_type, I...> && (sizeof...(I) < D)>>
+        auto at(I... index) {
+            auto o = offsets_, d = data_begin_;
+            for (const auto& it : { size_type(index)... })
+                d += *o++ * it;
+            return array<T, D - sizeof...(I), Allocator, false>(d, sizes_ + sizeof...(I), o);
+        };
+
+        template<typename... I, typename = std::enable_if_t<is_convertible_all_v<size_type, I...> && (sizeof...(I) == D)>>
+        const auto& at(I... index) const {
+            auto o = offsets_, d = data_begin_;
+            for (const auto& it : { size_type(index)... })
+                d += *o++ * it;
+            return *d;
+        };
+
+        template<typename... I, typename = std::enable_if_t<is_convertible_all_v<size_type, I...> && (sizeof...(I) < D)>>
+        const auto at(I... index) const {
+            auto o = offsets_, d = data_begin_;
+            for (const auto& it : { size_type(index)... })
+                d += *o++ * it;
+            return array<T, D - sizeof...(I), Allocator, false>(d, sizes_ + sizeof...(I), o);
+        };
+
         ~array() {
             if (Owner) {
                 for (size_t i = 0; i < *sizes_ * *offsets_; ++i)
@@ -64,7 +124,7 @@ namespace feniks {
             }
         }
 
-        auto size() {
+        auto size() const {
             return *sizes_;
         }
 
@@ -74,7 +134,7 @@ namespace feniks {
         auto make_sizes(S... sizes) {
             auto result = new size_type[D];
             auto p = result;
-            for (const auto it : { size_type(sizes)... })
+            for (const auto& it : { size_type(sizes)... })
                 *p++ = it;
             return result;
         }
