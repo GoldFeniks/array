@@ -124,8 +124,8 @@ namespace feniks {
             }
         }
 
-        auto size() const {
-            return *sizes_;
+        auto size(size_type n = 0) const {
+            return sizes_[n];
         }
 
     private:
