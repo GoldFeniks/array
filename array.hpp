@@ -3,6 +3,8 @@
 #include <memory>
 #include <type_traits>
 #include "type_traits.hpp"
+#include <cassert>
+#include <cstring>
 
 namespace feniks {
 
@@ -23,16 +25,40 @@ namespace feniks {
 
         static constexpr auto dimensions = D;
 
+        array() = delete;
+
         template<typename... S, typename = std::enable_if_t<is_convertible_all_v<size_type, S...> && (sizeof...(S) == D) && Owner>>
         explicit array(S... sizes) : sizes_(make_sizes(sizes...)), offsets_(make_offsets()) {
-            const auto mul = offsets_[0] * sizes_[0];
-            data_begin_ = allocator_->allocate(mul);
-            data_end_ = data_begin_ + mul;
+            allocate();
         }
 
-        template<typename S = size_type>
-        array(data_type* data, const S* sizes, std::enable_if_t<!Owner, const S*> offsets) :
-                data_begin_(data), data_end_(data + *sizes + *offsets), sizes_(sizes), offsets_(offsets) {}
+        template<bool O, typename C = void, typename = std::enable_if_t<Owner, C>>
+        explicit array(const array<T, D, Allocator, O>& other) {
+            allocate_sizes();
+            *this = other;
+        };
+
+        template<bool O, typename C = void, typename = std::enable_if_t<Owner, C>>
+        array& operator=(const array<T, D, Allocator, O>& other) {
+            copy(other);
+            return *this;
+        }
+
+        template<typename C = void, typename = std::enable_if_t<Owner, C>>
+        explicit array(array<T, D, Allocator, true>&& other) {
+            allocate_sizes();
+            *this = std::move(other);
+        }
+
+        template<typename C = void, typename = std::enable_if_t<Owner, C>>
+        array& operator=(array<T, D, Allocator, true>&& other) {
+            std::swap(sizes_, other.sizes_);
+            std::swap(offsets_, other.offsets_);
+            std::swap(data_begin_, other.data_begin_);
+            std::swap(data_end_, other.data_end_);
+            std::swap(allocator_, other.allocator_);
+            return *this;
+        }
 
         template<typename I = size_type>
         auto& operator[](std::enable_if_t<D == 1, const I&> index) {
@@ -116,9 +142,7 @@ namespace feniks {
 
         ~array() {
             if (Owner) {
-                for (size_t i = 0; i < *sizes_ * *offsets_; ++i)
-                    allocator_->destroy(data_begin_ + i);
-                allocator_->deallocate(data_begin_, *sizes_ * *offsets_);
+                allocator_->deallocate(data_begin_, full_size());
                 delete[] sizes_;
                 delete[] offsets_;
             }
@@ -128,7 +152,50 @@ namespace feniks {
             return sizes_[n];
         }
 
+        auto full_size() const {
+            return *sizes_ * *offsets_;
+        }
+
     private:
+
+        template<typename, size_t, typename, bool>
+        friend class array;
+
+        template<typename S = size_type>
+        array(data_type* data, S* sizes, std::enable_if_t<!Owner, S*> offsets) :
+                data_begin_(data), data_end_(data + *sizes + *offsets), sizes_(sizes), offsets_(offsets) {}
+
+        inline void allocate_sizes() {
+            sizes_ = new size_type[D];
+            offsets_ = new size_type[D];
+            std::memset(sizes_, 0, sizeof(size_type) * D);
+            std::memset(offsets_, 0, sizeof(size_type) * D);
+        }
+
+        inline void allocate() {
+            data_begin_ = allocator_->allocate(full_size());
+            data_end_ = data_begin_ + full_size();
+        }
+
+        template<bool O>
+        void copy(const array<T, D, Allocator, O>& other) {
+            const auto old_size = full_size();
+            const auto new_size = other.full_size();
+            if (Owner) {
+                allocator_->deallocate(data_begin_, old_size);
+                std::copy(other.sizes_, other.sizes_ + D, sizes_);
+                std::copy(other.offsets_, other.offsets_ + D, offsets_);
+                allocate();
+            }
+            else
+                for (size_t i = 0; i < D; ++i)
+                    assert(sizes_[i] == other.sizes_[i]);
+            for (size_type i = 0; i < new_size; ++i)
+                if (std::is_default_constructible_v<T>)
+                    data_begin_[i] = other.data_begin_[i];
+                else
+                    new (data_begin_ + i) T(other.data_begin_[i]);
+        }
 
         template<typename... S>
         auto make_sizes(S... sizes) {
@@ -150,7 +217,7 @@ namespace feniks {
             return result;
         }
 
-        const size_type *sizes_, *offsets_;
+        size_type *sizes_, *offsets_;
         allocator_type* allocator_ = Owner ? new allocator_type() : nullptr;
         T* data_begin_ = nullptr, *data_end_ = nullptr;
 
