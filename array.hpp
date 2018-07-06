@@ -26,6 +26,115 @@ namespace feniks {
 
         static constexpr auto dimensions = D;
 
+        class iterator : public std::iterator<std::random_access_iterator_tag, value_type> {
+
+        public:
+
+            iterator(const iterator& other) = default;
+            iterator(iterator&& other) noexcept = default;
+            ~iterator() = default;
+
+            bool operator==(const iterator& other) { return data_ == other.data_; }
+            bool operator!=(const iterator& other) { return !(*this == other); }
+
+            template<typename = std::enable_if_t<1 < D>>
+            auto operator*() { return array<T, D - 1, Allocator, false>(data_, owner_->sizes_ + 1, owner_->offsets_ + 1); }
+
+            template<typename = std::enable_if_t<1 < D>>
+            auto operator->() { return array<T, D - 1, Allocator, false>(data_, owner_->sizes_ + 1, owner_->offsets_ + 1); }
+
+            template<typename = std::enable_if_t<1 == D>>
+            auto& operator*() { return *data_; }
+
+            template<typename = std::enable_if_t<1 == D>>
+            auto& operator->() { return data_; }
+
+            iterator& operator++() {
+                data_ += *owner_->offsets_;
+                if (data_ > owner_->data_end_) data_ = owner_->data_end_;
+                return *this;
+            }
+
+            const iterator operator++(int) {
+                const auto temp = *this;
+                (*this)++;
+                return temp;
+            }
+
+            iterator& operator--() {
+                data_ -= *owner_->offsets_;
+                if (data_ < owner_->data_begin_) data_ = owner_->data_begin_;
+                return *this;
+            }
+
+            const iterator operator--(int) {
+                const auto temp = *this;
+                (*this)--;
+                return temp;
+            }
+
+            iterator& operator+=(const size_t n) {
+                data_ += *owner_->offsets_ * n;
+                if (data_ > owner_->data_end_) data_ = owner_->data_end_;
+                return *this;
+            }
+
+            iterator& operator-=(const size_t n) {
+                data_ -= *owner_->offsets_ * n;
+                if (data_ < owner_->data_begin_) data_ = owner_->data_begin_;
+                return *this;
+            }
+
+            iterator operator+(const size_t n) const {
+                auto temp = *this;
+                temp += n;
+                return temp;
+            }
+
+            iterator operator-(const size_t n) const {
+                auto temp = *this;
+                temp -= n;
+                return temp;
+            }
+
+            size_t operator-(const iterator& other) const {
+                return (data_ - other.data_) / *owner_->offsets_;
+            }
+
+            bool operator<(const iterator& other) const {
+                return data_ < other.data_;
+            }
+
+            bool operator>(const iterator& other) const {
+                return data_ > other.data_;
+            }
+
+            bool operator<=(const iterator& other) const {
+                return !(*this > other);
+            }
+
+            bool operator>=(const iterator& other) const {
+                return !(*this < other);
+            }
+
+            template<typename = std::enable_if_t<1 < D>>
+            auto operator[](const size_t index) {
+                return *(*this + index);
+            };
+
+        private:
+
+            template<typename, size_t, typename, bool>
+            friend class array;
+
+            iterator() = default;
+            iterator(array* owner, T* data) : owner_(owner), data_(data) {}
+
+            array* owner_;
+            data_type* data_ = nullptr;
+
+        };
+
         array() = delete;
 
         template<typename... S, typename = std::enable_if_t<is_convertible_all_v<size_type, S...> && (sizeof...(S) == D) && Owner>>
@@ -119,6 +228,14 @@ namespace feniks {
             return *sizes_ * *offsets_;
         }
 
+        iterator begin() noexcept {
+            return iterator(this, data_begin_);
+        }
+
+        iterator end() noexcept {
+            return iterator(this, data_end_);
+        }
+
     private:
 
         template<typename, size_t, typename, bool>
@@ -126,7 +243,7 @@ namespace feniks {
 
         template<typename S = size_type>
         array(data_type* data, S* sizes, std::enable_if_t<!Owner, S*> offsets) :
-                data_begin_(data), data_end_(data + *sizes + *offsets), sizes_(sizes), offsets_(offsets) {}
+                data_begin_(data), data_end_(data + *sizes * *offsets), sizes_(sizes), offsets_(offsets) {}
 
         inline void allocate_sizes() {
             sizes_ = new size_type[D];
@@ -190,7 +307,7 @@ namespace feniks {
 
         size_type *sizes_, *offsets_;
         allocator_type* allocator_ = Owner ? new allocator_type() : nullptr;
-        T* data_begin_ = nullptr, *data_end_ = nullptr;
+        data_type* data_begin_ = nullptr, *data_end_ = nullptr;
 
     };
 
