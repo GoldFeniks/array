@@ -19,15 +19,15 @@ namespace feniks {
 
     public:
 
-        typedef T data_type;
-        typedef std::conditional_t<D == 1, data_type, array<data_type, D - 1, Allocator, false>> value_type;
-        typedef Allocator allocator_type;
-        typedef size_t size_type;
-        typedef std::ptrdiff_t difference_type;
-        typedef value_type& reference;
-        typedef const value_type const_reference;
-        typedef data_type& data_reference;
-        typedef const data_type& const_data_reference;
+        using data_type = T;
+        using value_type = std::conditional_t<D == 1, data_type, array<data_type, D - 1, Allocator, false>>;
+        using allocator_type = Allocator;
+        using size_type = size_t;
+        using difference_type = std::ptrdiff_t;
+        using reference = value_type&;
+        using const_reference = const value_type&;
+        using data_reference = data_type&;
+        using const_data_reference = const data_type&;
 
         static constexpr auto dimensions = D;
 
@@ -239,7 +239,7 @@ namespace feniks {
 
         public:
 
-            typedef std::iterator<std::random_access_iterator_tag, std::conditional_t<Const, const value_type, value_type>> base;
+            using base = std::iterator<std::random_access_iterator_tag, std::conditional_t<Const, const value_type, value_type>>;
 
             base_iterator() = default;
             base_iterator(const base_iterator& other) = default;

@@ -8,8 +8,8 @@ namespace feniks {
 
         constexpr static bool value = std::is_convertible_v<From, To> && is_convertible_all<To, Rest...>::value;
 
-        typedef bool value_type;
-        typedef std::integral_constant<bool, value> type;
+        using value_type = bool;
+        using type = std::integral_constant<bool, value>;
 
         explicit operator value_type() { return value; }
         value_type operator()() { return value; }
@@ -21,8 +21,8 @@ namespace feniks {
 
         constexpr static bool value = std::is_convertible_v<From, To>;
 
-        typedef bool value_type;
-        typedef std::integral_constant<bool, value> type;
+        using value_type = bool;
+        using type = std::integral_constant<bool, value>;
 
         explicit operator value_type() { return value; }
         value_type operator()() { return value; }
