@@ -33,6 +33,8 @@ namespace feniks {
 
         using iterator = base_iterator<false>;
         using const_iterator = base_iterator<true>;
+        using reverse_iterator = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
         array() = delete;
 
@@ -141,6 +143,22 @@ namespace feniks {
 
         const_iterator end() const noexcept {
             return const_iterator(data_end_, sizes_, offsets_);
+        }
+
+        reverse_iterator rbegin() noexcept {
+            return std::make_reverse_iterator(iterator(data_end_, sizes_, offsets_));
+        }
+
+        reverse_iterator rend() noexcept {
+            return std::make_reverse_iterator(iterator(data_begin_, sizes_, offsets_));
+        }
+
+        const_reverse_iterator rbegin() const noexcept {
+            return std::make_reverse_iterator(const_iterator(data_end_, sizes_, offsets_));
+        }
+
+        const_reverse_iterator rend() const noexcept {
+            return std::make_reverse_iterator(const_iterator(data_begin_, sizes_, offsets_));
         }
 
     private:
