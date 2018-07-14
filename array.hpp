@@ -252,9 +252,6 @@ namespace feniks {
             template<typename = std::enable_if_t<1 < D>>
             typename base::value_type operator*() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
 
-            template<typename = std::enable_if_t<1 < D>>
-            typename base::value_type operator->() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
-
             template<typename = std::enable_if_t<1 == D>>
             typename base::reference operator*() { return *data_; }
 
