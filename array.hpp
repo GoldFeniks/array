@@ -161,6 +161,38 @@ namespace feniks {
             return std::make_reverse_iterator(const_iterator(data_begin_, sizes_, offsets_));
         }
 
+        auto fbegin() noexcept {
+            return typename array<T, 1, Allocator, Owner>::iterator(data_begin_, sizes_ + D - 1, offsets_ + D - 1);
+        }
+
+        auto fend() noexcept {
+            return typename array<T, 1, Allocator, Owner>::iterator(data_end_, sizes_ + D - 1, offsets_ + D - 1);
+        }
+
+        auto fbegin() const noexcept {
+            return typename array<T, 1, Allocator, Owner>::const_iterator(data_begin_, sizes_ + D - 1, offsets_ + D - 1);
+        }
+
+        auto fend() const noexcept {
+            return typename array<T, 1, Allocator, Owner>::const_iterator(data_end_, sizes_ + D - 1, offsets_ + D - 1);
+        }
+
+        auto rfbegin() noexcept {
+            return std::make_reverse_iterator(typename array<T, 1, Allocator, Owner>::iterator(data_end_, sizes_ + D - 1, offsets_ + D - 1));
+        }
+
+        auto rfend() noexcept {
+            return std::make_reverse_iterator(typename array<T, 1, Allocator, Owner>::iterator(data_begin_, sizes_ + D - 1, offsets_ + D - 1));
+        }
+
+        auto rfbegin() const noexcept {
+            return std::make_reverse_iterator(typename array<T, 1, Allocator, Owner>::const_iterator(data_end_, sizes_ + D - 1, offsets_ + D - 1));
+        }
+
+        auto rfend() const noexcept {
+            return std::make_reverse_iterator(typename array<T, 1, Allocator, Owner>::const_iterator(data_begin_, sizes_ + D - 1, offsets_ + D - 1));
+        }
+
     private:
 
         template<typename, size_t, typename, bool>
