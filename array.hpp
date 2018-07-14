@@ -38,10 +38,10 @@ namespace feniks {
             bool operator!=(const iterator& other) { return !(*this == other); }
 
             template<typename = std::enable_if_t<1 < D>>
-            auto operator*() { return array<T, D - 1, Allocator, false>(data_, owner_->sizes_ + 1, owner_->offsets_ + 1); }
+            auto operator*() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
 
             template<typename = std::enable_if_t<1 < D>>
-            auto operator->() { return array<T, D - 1, Allocator, false>(data_, owner_->sizes_ + 1, owner_->offsets_ + 1); }
+            auto operator->() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
 
             template<typename = std::enable_if_t<1 == D>>
             auto& operator*() { return *data_; }
@@ -50,8 +50,7 @@ namespace feniks {
             auto& operator->() { return data_; }
 
             iterator& operator++() {
-                data_ += *owner_->offsets_;
-                if (data_ > owner_->data_end_) data_ = owner_->data_end_;
+                data_ += *offset_;
                 return *this;
             }
 
@@ -62,8 +61,7 @@ namespace feniks {
             }
 
             iterator& operator--() {
-                data_ -= *owner_->offsets_;
-                if (data_ < owner_->data_begin_) data_ = owner_->data_begin_;
+                data_ -= *offset_;
                 return *this;
             }
 
@@ -74,14 +72,12 @@ namespace feniks {
             }
 
             iterator& operator+=(const size_t n) {
-                data_ += *owner_->offsets_ * n;
-                if (data_ > owner_->data_end_) data_ = owner_->data_end_;
+                data_ += *offset_ * n;
                 return *this;
             }
 
             iterator& operator-=(const size_t n) {
-                data_ -= *owner_->offsets_ * n;
-                if (data_ < owner_->data_begin_) data_ = owner_->data_begin_;
+                data_ -= *offset_ * n;
                 return *this;
             }
 
@@ -98,7 +94,7 @@ namespace feniks {
             }
 
             size_t operator-(const iterator& other) const {
-                return (data_ - other.data_) / *owner_->offsets_;
+                return (data_ - other.data_) / *offset_;
             }
 
             bool operator<(const iterator& other) const {
@@ -128,10 +124,10 @@ namespace feniks {
             friend class array;
 
             iterator() = default;
-            iterator(array* owner, T* data) : owner_(owner), data_(data) {}
+            iterator(T* data, size_type* size, size_type* offset) : data_(data), size_(size), offset_(offset) {}
 
-            array* owner_;
             data_type* data_ = nullptr;
+            size_type* size_ = nullptr, *offset_ = nullptr;
 
         };
 
@@ -229,11 +225,11 @@ namespace feniks {
         }
 
         iterator begin() noexcept {
-            return iterator(this, data_begin_);
+            return iterator(data_begin_, sizes_, offsets_);
         }
 
         iterator end() noexcept {
-            return iterator(this, data_end_);
+            return iterator(data_end_, sizes_, offsets_);
         }
 
     private:
