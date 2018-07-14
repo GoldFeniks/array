@@ -50,7 +50,7 @@ namespace feniks {
         };
 
         template<bool O, typename C = void, typename = std::enable_if_t<Owner, C>>
-        array& operator=(const array<T, D, Allocator, O>& other) {
+        auto& operator=(const array<T, D, Allocator, O>& other) {
             copy(other);
             return *this;
         }
@@ -62,7 +62,7 @@ namespace feniks {
         }
 
         template<typename C = void, typename = std::enable_if_t<Owner, C>>
-        array& operator=(array<T, D, Allocator, true>&& other) {
+        auto& operator=(array<T, D, Allocator, true>&& other) {
             std::swap(sizes_, other.sizes_);
             std::swap(offsets_, other.offsets_);
             std::swap(data_begin_, other.data_begin_);
@@ -129,35 +129,35 @@ namespace feniks {
             return *sizes_ * *offsets_;
         }
 
-        iterator begin() noexcept {
+        auto begin() noexcept {
             return iterator(data_begin_, sizes_, offsets_);
         }
 
-        iterator end() noexcept {
+        auto end() noexcept {
             return iterator(data_end_, sizes_, offsets_);
         }
 
-        const_iterator begin() const noexcept {
+        auto begin() const noexcept {
             return const_iterator(data_begin_, sizes_, offsets_);
         }
 
-        const_iterator end() const noexcept {
+        auto end() const noexcept {
             return const_iterator(data_end_, sizes_, offsets_);
         }
 
-        reverse_iterator rbegin() noexcept {
+        auto rbegin() noexcept {
             return std::make_reverse_iterator(iterator(data_end_, sizes_, offsets_));
         }
 
-        reverse_iterator rend() noexcept {
+        auto rend() noexcept {
             return std::make_reverse_iterator(iterator(data_begin_, sizes_, offsets_));
         }
 
-        const_reverse_iterator rbegin() const noexcept {
+        auto rbegin() const noexcept {
             return std::make_reverse_iterator(const_iterator(data_end_, sizes_, offsets_));
         }
 
-        const_reverse_iterator rend() const noexcept {
+        auto rend() const noexcept {
             return std::make_reverse_iterator(const_iterator(data_begin_, sizes_, offsets_));
         }
 
@@ -270,45 +270,45 @@ namespace feniks {
             template<typename = std::enable_if_t<1 == D>>
             const typename base::pointer operator->() const { return data_; }
 
-            base_iterator& operator++() {
+            auto& operator++() {
                 data_ += *offset_;
                 return *this;
             }
 
-            const base_iterator operator++(int) {
+            const auto operator++(int) {
                 const auto temp = *this;
                 (*this)++;
                 return temp;
             }
 
-            base_iterator& operator--() {
+            auto& operator--() {
                 data_ -= *offset_;
                 return *this;
             }
 
-            const base_iterator operator--(int) {
+            const auto operator--(int) {
                 const auto temp = *this;
                 (*this)--;
                 return temp;
             }
 
-            base_iterator& operator+=(const size_t n) {
+            auto& operator+=(const size_t n) {
                 data_ += *offset_ * n;
                 return *this;
             }
 
-            base_iterator& operator-=(const size_t n) {
+            auto& operator-=(const size_t n) {
                 data_ -= *offset_ * n;
                 return *this;
             }
 
-            base_iterator operator+(const size_t n) const {
+            auto operator+(const size_t n) const {
                 auto temp = *this;
                 temp += n;
                 return temp;
             }
 
-            base_iterator operator-(const size_t n) const {
+            auto operator-(const size_t n) const {
                 auto temp = *this;
                 temp -= n;
                 return temp;
