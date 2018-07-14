@@ -337,22 +337,22 @@ namespace feniks {
                 return !(*this < other);
             }
 
-            template<typename C = void, typename = std::enable_if_t<1 < D, C>>
+            template<typename = std::enable_if_t<1 < D>>
             typename base::value_type operator[](const size_type index) {
                 return *(*this + index);
             };
 
-            template<typename C = void, typename = std::enable_if_t<1 == D, C>>
+            template<typename = std::enable_if_t<1 == D>>
             typename base::reference operator[](const size_type index) {
                 return *(*this + index);
             };
 
-            template<typename C = void, typename = std::enable_if_t<1 < D, C>>
+            template<typename = std::enable_if_t<1 < D>>
             const typename base::value_type operator[](const size_type index) const {
                 return *(*this + index);
             };
 
-            template<typename C = void, typename = std::enable_if_t<1 == D, C>>
+            template<typename = std::enable_if_t<1 == D>>
             const typename base::reference operator[](const size_type index) const {
                 return *(*this + index);
             };
