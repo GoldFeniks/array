@@ -221,6 +221,8 @@ namespace feniks {
 
         public:
 
+            typedef std::iterator<std::random_access_iterator_tag, std::conditional_t<Const, const value_type, value_type>> base;
+
             base_iterator() = default;
             base_iterator(const base_iterator& other) = default;
             base_iterator(base_iterator&& other) noexcept = default;
@@ -230,16 +232,16 @@ namespace feniks {
             bool operator!=(const base_iterator& other) { return !(*this == other); }
 
             template<typename = std::enable_if_t<1 < D>>
-            value_type operator*() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
+            typename base::value_type operator*() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
 
             template<typename = std::enable_if_t<1 < D>>
-            value_type operator->() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
+            typename base::value_type operator->() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
 
             template<typename = std::enable_if_t<1 == D>>
-            reference operator*() { return *data_; }
+            typename base::reference operator*() { return *data_; }
 
             template<typename = std::enable_if_t<1 == D>>
-            reference operator->() { return data_; }
+            typename base::pointer operator->() { return data_; }
 
             base_iterator& operator++() {
                 data_ += *offset_;
@@ -306,12 +308,12 @@ namespace feniks {
             }
 
             template<typename = std::enable_if_t<1 < D>>
-            value_type operator[](const size_type index) {
+            typename base::value_type operator[](const size_type index) {
                 return *(*this + index);
             };
 
             template<typename = std::enable_if_t<1 == D>>
-            reference operator[](const size_type index) {
+            typename base::reference operator[](const size_type index) {
                 return *(*this + index);
             };
 
@@ -320,7 +322,7 @@ namespace feniks {
             template<typename, size_t, typename, bool>
             friend class array;
 
-            base_iterator(T* data, size_type* size, size_type* offset) : data_(data), size_(size), offset_(offset) {}
+            base_iterator(data_type* data, size_type* size, size_type* offset) : data_(data), size_(size), offset_(offset) {}
 
             data_type* data_ = nullptr;
             size_type* size_ = nullptr, *offset_ = nullptr;
