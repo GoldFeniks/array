@@ -243,6 +243,18 @@ namespace feniks {
             template<typename = std::enable_if_t<1 == D>>
             typename base::pointer operator->() { return data_; }
 
+            template<typename = std::enable_if_t<1 < D>>
+            const typename base::value_type operator*() const { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
+
+            template<typename = std::enable_if_t<1 < D>>
+            const typename base::value_type operator->() const { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
+
+            template<typename = std::enable_if_t<1 == D>>
+            const typename base::reference operator*() const { return *data_; }
+
+            template<typename = std::enable_if_t<1 == D>>
+            const typename base::pointer operator->() const { return data_; }
+
             base_iterator& operator++() {
                 data_ += *offset_;
                 return *this;
@@ -307,13 +319,23 @@ namespace feniks {
                 return !(*this < other);
             }
 
-            template<typename = std::enable_if_t<1 < D>>
+            template<typename C = void, typename = std::enable_if_t<1 < D, C>>
             typename base::value_type operator[](const size_type index) {
                 return *(*this + index);
             };
 
-            template<typename = std::enable_if_t<1 == D>>
+            template<typename C = void, typename = std::enable_if_t<1 == D, C>>
             typename base::reference operator[](const size_type index) {
+                return *(*this + index);
+            };
+
+            template<typename C = void, typename = std::enable_if_t<1 < D, C>>
+            const typename base::value_type operator[](const size_type index) const {
+                return *(*this + index);
+            };
+
+            template<typename C = void, typename = std::enable_if_t<1 == D, C>>
+            const typename base::reference operator[](const size_type index) const {
                 return *(*this + index);
             };
 
