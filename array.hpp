@@ -12,10 +12,15 @@ namespace feniks {
     template<typename T, size_t D, typename Allocator = std::allocator<T>, bool Owner = true>
     class array {
 
+    private:
+
+        template<bool Const>
+        class base_iterator;
+
     public:
 
         typedef T data_type;
-        typedef std::conditional_t<D == 1, data_type, array<T, D - 1, Allocator>> value_type;
+        typedef std::conditional_t<D == 1, data_type, array<data_type, D - 1, Allocator, false>> value_type;
         typedef Allocator allocator_type;
         typedef size_t size_type;
         typedef std::ptrdiff_t difference_type;
@@ -26,226 +31,8 @@ namespace feniks {
 
         static constexpr auto dimensions = D;
 
-        class iterator : public std::iterator<std::random_access_iterator_tag, value_type> {
-
-        public:
-
-            iterator() = default;
-            iterator(const iterator& other) = default;
-            iterator(iterator&& other) noexcept = default;
-            ~iterator() = default;
-
-            bool operator==(const iterator& other) { return data_ == other.data_; }
-            bool operator!=(const iterator& other) { return !(*this == other); }
-
-            template<typename = std::enable_if_t<1 < D>>
-            auto operator*() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
-
-            template<typename = std::enable_if_t<1 < D>>
-            auto operator->() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
-
-            template<typename = std::enable_if_t<1 == D>>
-            auto& operator*() { return *data_; }
-
-            template<typename = std::enable_if_t<1 == D>>
-            auto& operator->() { return data_; }
-
-            iterator& operator++() {
-                data_ += *offset_;
-                return *this;
-            }
-
-            const iterator operator++(int) {
-                const auto temp = *this;
-                (*this)++;
-                return temp;
-            }
-
-            iterator& operator--() {
-                data_ -= *offset_;
-                return *this;
-            }
-
-            const iterator operator--(int) {
-                const auto temp = *this;
-                (*this)--;
-                return temp;
-            }
-
-            iterator& operator+=(const size_t n) {
-                data_ += *offset_ * n;
-                return *this;
-            }
-
-            iterator& operator-=(const size_t n) {
-                data_ -= *offset_ * n;
-                return *this;
-            }
-
-            iterator operator+(const size_t n) const {
-                auto temp = *this;
-                temp += n;
-                return temp;
-            }
-
-            iterator operator-(const size_t n) const {
-                auto temp = *this;
-                temp -= n;
-                return temp;
-            }
-
-            size_t operator-(const iterator& other) const {
-                return (data_ - other.data_) / *offset_;
-            }
-
-            bool operator<(const iterator& other) const {
-                return data_ < other.data_;
-            }
-
-            bool operator>(const iterator& other) const {
-                return data_ > other.data_;
-            }
-
-            bool operator<=(const iterator& other) const {
-                return !(*this > other);
-            }
-
-            bool operator>=(const iterator& other) const {
-                return !(*this < other);
-            }
-
-            template<typename = std::enable_if_t<1 < D>>
-            auto operator[](const size_type index) {
-                return *(*this + index);
-            };
-
-            template<typename = std::enable_if_t<1 == D>>
-            auto& operator[](const size_type index) {
-                return *(*this + index);
-            };
-
-        private:
-
-            template<typename, size_t, typename, bool>
-            friend class array;
-
-            iterator(T* data, size_type* size, size_type* offset) : data_(data), size_(size), offset_(offset) {}
-
-            data_type* data_ = nullptr;
-            size_type* size_ = nullptr, *offset_ = nullptr;
-
-        };
-
-        class const_iterator : public std::iterator<std::random_access_iterator_tag, value_type> {
-
-        public:
-
-            const_iterator() = default;
-            const_iterator(const const_iterator& other) = default;
-            const_iterator(const_iterator&& other) noexcept = default;
-            ~const_iterator() = default;
-
-            bool operator==(const const_iterator& other) { return data_ == other.data_; }
-            bool operator!=(const const_iterator& other) { return !(*this == other); }
-
-            template<typename = std::enable_if_t<1 < D>>
-            const auto operator*() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
-
-            template<typename = std::enable_if_t<1 < D>>
-            const auto operator->() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
-
-            template<typename = std::enable_if_t<1 == D>>
-            const auto& operator*() { return *data_; }
-
-            template<typename = std::enable_if_t<1 == D>>
-            const auto& operator->() { return data_; }
-
-            const_iterator& operator++() {
-                data_ += *offset_;
-                return *this;
-            }
-
-            const const_iterator operator++(int) {
-                const auto temp = *this;
-                (*this)++;
-                return temp;
-            }
-
-            const_iterator& operator--() {
-                data_ -= *offset_;
-                return *this;
-            }
-
-            const const_iterator operator--(int) {
-                const auto temp = *this;
-                (*this)--;
-                return temp;
-            }
-
-            const_iterator& operator+=(const size_t n) {
-                data_ += *offset_ * n;
-                return *this;
-            }
-
-            const_iterator& operator-=(const size_t n) {
-                data_ -= *offset_ * n;
-                return *this;
-            }
-
-            const_iterator operator+(const size_t n) const {
-                auto temp = *this;
-                temp += n;
-                return temp;
-            }
-
-            const_iterator operator-(const size_t n) const {
-                auto temp = *this;
-                temp -= n;
-                return temp;
-            }
-
-            size_type operator-(const const_iterator& other) const {
-                return (data_ - other.data_) / *offset_;
-            }
-
-            bool operator<(const const_iterator& other) const {
-                return data_ < other.data_;
-            }
-
-            bool operator>(const const_iterator& other) const {
-                return data_ > other.data_;
-            }
-
-            bool operator<=(const const_iterator& other) const {
-                return !(*this > other);
-            }
-
-            bool operator>=(const const_iterator& other) const {
-                return !(*this < other);
-            }
-
-            template<typename = std::enable_if_t<1 < D>>
-            const auto operator[](const size_type index) {
-                return *(*this + index);
-            };
-
-            template<typename = std::enable_if_t<1 == D>>
-            const auto& operator[](const size_type index) {
-                return *(*this + index);
-            };
-
-        private:
-
-            template<typename, size_t, typename, bool>
-            friend class array;
-
-            const_iterator(data_type* data, size_type* size, size_type* offset) :
-                    data_(data), size_(size), offset_(offset) {}
-
-            data_type* data_ = nullptr;
-            size_type* size_ = nullptr, *offset_ = nullptr;
-
-        };
+        using iterator = base_iterator<false>;
+        using const_iterator = base_iterator<true>;
 
         array() = delete;
 
@@ -282,23 +69,23 @@ namespace feniks {
             return *this;
         }
 
-        template<typename I = size_type>
-        auto& operator[](std::enable_if_t<D == 1, const I&> index) {
+        template<typename I = size_type, typename = std::enable_if_t<D == 1, I>>
+        auto& operator[](const I& index) {
             return data_begin_[index];
         }
 
-        template<typename I = size_type>
-        auto operator[](std::enable_if_t<D != 1, const I&> index) {
+        template<typename I = size_type, typename = std::enable_if_t<D != 1, I>>
+        auto operator[](const I& index) {
             return array<T, D - 1, Allocator, false>(data_begin_ + index * *offsets_, sizes_ + 1, offsets_ + 1);
         }
 
-        template<typename I = size_type>
-        const auto& operator[](std::enable_if_t<D == 1, const I&> index) const {
+        template<typename I = size_type, typename = std::enable_if_t<D == 1, I>>
+        const auto& operator[](const I& index) const {
             return data_begin_[index];
         }
 
-        template<typename I = size_type>
-        const auto operator[](std::enable_if_t<D != 1, const I&> index) const {
+        template<typename I = size_type, typename = std::enable_if_t<D != 1, I>>
+        const auto operator[](const I& index) const {
             return array<T, D - 1, Allocator, false>(data_begin_ + index * *offsets_, sizes_ + 1, offsets_ + 1);
         }
 
@@ -428,6 +215,117 @@ namespace feniks {
         size_type *sizes_, *offsets_;
         allocator_type* allocator_ = Owner ? new allocator_type() : nullptr;
         data_type* data_begin_ = nullptr, *data_end_ = nullptr;
+
+        template<bool Const>
+        class base_iterator : public std::iterator<std::random_access_iterator_tag, std::conditional_t<Const, const value_type, value_type>> {
+
+        public:
+
+            base_iterator() = default;
+            base_iterator(const base_iterator& other) = default;
+            base_iterator(base_iterator&& other) noexcept = default;
+            ~base_iterator() = default;
+
+            bool operator==(const base_iterator& other) { return data_ == other.data_; }
+            bool operator!=(const base_iterator& other) { return !(*this == other); }
+
+            template<typename = std::enable_if_t<1 < D>>
+            value_type operator*() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
+
+            template<typename = std::enable_if_t<1 < D>>
+            value_type operator->() { return array<T, D - 1, Allocator, false>(data_, size_ + 1, offset_ + 1); }
+
+            template<typename = std::enable_if_t<1 == D>>
+            reference operator*() { return *data_; }
+
+            template<typename = std::enable_if_t<1 == D>>
+            reference operator->() { return data_; }
+
+            base_iterator& operator++() {
+                data_ += *offset_;
+                return *this;
+            }
+
+            const base_iterator operator++(int) {
+                const auto temp = *this;
+                (*this)++;
+                return temp;
+            }
+
+            base_iterator& operator--() {
+                data_ -= *offset_;
+                return *this;
+            }
+
+            const base_iterator operator--(int) {
+                const auto temp = *this;
+                (*this)--;
+                return temp;
+            }
+
+            base_iterator& operator+=(const size_t n) {
+                data_ += *offset_ * n;
+                return *this;
+            }
+
+            base_iterator& operator-=(const size_t n) {
+                data_ -= *offset_ * n;
+                return *this;
+            }
+
+            base_iterator operator+(const size_t n) const {
+                auto temp = *this;
+                temp += n;
+                return temp;
+            }
+
+            base_iterator operator-(const size_t n) const {
+                auto temp = *this;
+                temp -= n;
+                return temp;
+            }
+
+            size_type operator-(const base_iterator& other) const {
+                return (data_ - other.data_) / *offset_;
+            }
+
+            bool operator<(const base_iterator& other) const {
+                return data_ < other.data_;
+            }
+
+            bool operator>(const base_iterator& other) const {
+                return data_ > other.data_;
+            }
+
+            bool operator<=(const base_iterator& other) const {
+                return !(*this > other);
+            }
+
+            bool operator>=(const base_iterator& other) const {
+                return !(*this < other);
+            }
+
+            template<typename = std::enable_if_t<1 < D>>
+            value_type operator[](const size_type index) {
+                return *(*this + index);
+            };
+
+            template<typename = std::enable_if_t<1 == D>>
+            reference operator[](const size_type index) {
+                return *(*this + index);
+            };
+
+        private:
+
+            template<typename, size_t, typename, bool>
+            friend class array;
+
+            base_iterator(T* data, size_type* size, size_type* offset) : data_(data), size_(size), offset_(offset) {}
+
+            data_type* data_ = nullptr;
+            size_type* size_ = nullptr, *offset_ = nullptr;
+
+        };
 
     };
 
