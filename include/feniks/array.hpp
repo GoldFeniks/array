@@ -63,6 +63,9 @@ namespace feniks {
 
             array() = delete;
 
+            array(const array& other) : _data(other._data) {}
+            array(array&& other) : _data(std::move(other._data)) {}
+
             array& operator=(const array& other) & {
                 _data = other._data;
                 return *this;
@@ -101,7 +104,7 @@ namespace feniks {
                 }
             }
 
-            template<typename V, typename = std::enable_if_t<std::is_same_v<std::remove_const_t<V>, data_type> && !std::is_const_v<data_type>>>
+            template<typename V, typename = std::enable_if_t<std::is_same_v<std::remove_const_t<V>, data_type>>>
             void assign(const array<V, D>& other) {
                 dynamic_assert(_all_equal(_data.sizes().data(), other._data.sizes().data()), "Incorrect assigned array size");
                 std::copy(other._data.data_begin(), other._data.data_end(), _data.data_begin());
@@ -275,6 +278,10 @@ namespace feniks {
 
             const_pointer data() const {
                 return _data.data_begin();
+            }
+
+            array<const data_type, D> as_const() const {
+                return _data;
             }
 
         protected:
