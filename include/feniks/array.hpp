@@ -269,6 +269,14 @@ namespace feniks {
                 return std::make_reverse_iterator(begin());
             }
 
+            pointer data() {
+                return _data.data_begin();
+            }
+
+            const_pointer data() const {
+                return _data.data_begin();
+            }
+
         protected:
 
             using shared_data_t = shared_sized_data<std::remove_const_t<T>, D, size_type, difference_type>;
