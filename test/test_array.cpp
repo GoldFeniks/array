@@ -208,3 +208,29 @@ TEST(ArrayTest, ArrayInitialization) {
     TEST_ARRAY_INDEX_LOOP(i, c, 2, EXPECT_EQ((c[{0, 1, i}]), (b[{0, i}])));
     TEST_ARRAY_INDEX_LOOP(i, c, 2, EXPECT_EQ((c[{0, 2, i}]), (b[{1, i}])));
 }
+
+TEST(ArrayTest, AsStrided) {
+    array<int, 2> a{
+        {1, 2, 3},
+        {4, 5, 6},
+        {7, 8, 9}
+    };
+
+    const auto b = a.as_strided({ 3 }, a.strides());
+
+    EXPECT_EQ(b[0], 1);
+    EXPECT_EQ(b[1], 4);
+    EXPECT_EQ(b[2], 7);
+
+    const auto c = a.as_strided( { 3 }, a.strides(), 1);
+
+    EXPECT_EQ(c[0], 2);
+    EXPECT_EQ(c[1], 5);
+    EXPECT_EQ(c[2], 8);
+
+    const auto d = a.as_strided( { 7, 3 }, { 1, 1 });
+
+    TEST_ARRAY_INDEX_LOOP(i, d, 0,
+                          TEST_ARRAY_INDEX_LOOP(j, d, 1,
+                                                EXPECT_EQ((d[{i, j}]), i + j + 1)));
+}

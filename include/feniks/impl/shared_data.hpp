@@ -10,12 +10,13 @@ namespace feniks {
     namespace _impl {
 
         template<typename T>
-        concept array_data_type =
+        concept sharable_data_type =
             std::is_default_constructible_v<T> &&
+            !std::is_const_v<T> &&
             !std::is_reference_v<T> &&
             !std::is_pointer_v<T>;
 
-        template<array_data_type, typename>
+        template<sharable_data_type, typename>
         struct shared_data;
 
         template<typename T, typename ST, typename F, typename... S>
@@ -39,7 +40,7 @@ namespace feniks {
 
         };
 
-        template<array_data_type T, typename DT = size_t>
+        template<sharable_data_type T, typename DT = size_t>
         class shared_data {
 
         public:
@@ -63,17 +64,13 @@ namespace feniks {
                 return _data.get();
             }
 
-            std::strong_ordering operator<=>(const shared_data<T, DT>& other) const {
+            std::strong_ordering operator<=>(const shared_data& other) const {
                 return _data <=> other._data;
             };
 
-            shared_data<const T, DT> as_const() const {
-                return shared_data<const T, DT>(_data);
-            }
-
         private:
 
-            template<array_data_type, typename>
+            template<sharable_data_type, typename>
             friend class shared_data;
 
             std::shared_ptr<T[]> _data;
@@ -184,7 +181,7 @@ namespace feniks {
 
             std::conditional_t<D == 1, T&, shared_sized_data<T, D - 1, ST>> operator[](const ST& n) const {
                 if constexpr (D == 1)
-                    return _data[n];
+                    return _data[n * _strides[0]];
                 else
                     return shared_sized_data<T, D - 1, ST>(_data.offset(n * _strides[0]), _sizes.offset(1), _strides.offset(1));
             }
@@ -235,6 +232,11 @@ namespace feniks {
                 _copy(_strides.data(), strides.data());
 
                 return shared_sized_data(std::move(data), std::move(sizes), std::move(strides));
+            }
+
+            template<size_t N>
+            shared_sized_data<T, N, ST, DT> as_strided(const sizes_type& sizes, const sizes_type& strides, const size_type& offset) const {
+                return shared_sized_data<T, N, ST, DT>(_data.offset(offset), sizes, strides);
             }
 
         private:

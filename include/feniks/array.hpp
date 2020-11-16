@@ -60,6 +60,13 @@ namespace feniks {
             using reverse_iterator       = std::reverse_iterator<iterator>;
             using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
+        private:
+
+            using sizes_t = _impl::shared_data<size_type, difference_type>;
+            using shared_data_t = _impl::shared_sized_data<std::remove_const_t<T>, D, size_type, difference_type>;
+
+        public:
+
             array() = delete;
 
             array(const array& other) : _data(other._data) {}
@@ -283,14 +290,40 @@ namespace feniks {
                 return _data;
             }
 
-        protected:
+            const sizes_t& strides() const {
+                return _data.strides();
+            }
 
-            using shared_data_t = shared_sized_data<std::remove_const_t<T>, D, size_type, difference_type>;
+            const sizes_t& sizes() const {
+                return _data.sizes();
+            }
+
+            template<size_t N>
+            array<data_type, N> as_strided(const sizes_t& sizes, const sizes_t& strides, const size_type& offset = 0) {
+                return _data.template as_strided<N>(sizes, strides, offset);
+            }
+
+            template<size_t N>
+            array<data_type, N> as_strided(const size_type(&sizes)[N], const size_type(&strides)[N], const size_type& offset = 0) {
+                return as_strided<N>(sizes_t(_array_to_pointer(sizes)), sizes_t(_array_to_pointer(strides)), offset);
+            }
+
+            template<size_t N>
+            array<data_type, N> as_strided(const sizes_t& sizes, const size_type(&strides)[N], const size_type& offset = 0) {
+                return as_strided<N>(sizes, sizes_t(_array_to_pointer(strides)), offset);
+            }
+
+            template<size_t N>
+            array<data_type, N> as_strided(const size_type(&sizes)[N], const sizes_t& strides, const size_type& offset = 0) {
+                return as_strided<N>(sizes_t(_array_to_pointer(sizes)), strides, offset);
+            }
+
+        private:
 
             shared_data_t _data;
 
             template<size_t, typename, typename, typename, typename>
-            friend class _impl::iterator;
+            friend class _impl::iterator_base;
 
             template<typename, size_t>
             friend class array;
@@ -315,6 +348,16 @@ namespace feniks {
             template<size_t... I>
             bool _all_equal(const size_type* a, const size_type* b, std::index_sequence<I...>) {
                 return ((a[I] == b[I]) && ...);
+            }
+
+            template<size_t N>
+            size_type* _array_to_pointer(const size_type(&values)[N]) {
+                return _array_to_pointer(values, std::make_index_sequence<N>{});
+            }
+
+            template<size_t... I>
+            size_type* _array_to_pointer(const size_type(&values)[sizeof...(I)], std::index_sequence<I...>) {
+                return new size_type[sizeof...(I)] { values[I]... };
             }
 
         };
