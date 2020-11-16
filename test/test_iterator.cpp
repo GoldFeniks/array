@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 #include "feniks/array.hpp"
-#include "feniks/iterator.hpp"
+#include "feniks/impl/iterator.hpp"
 
 using namespace feniks;
 
@@ -33,7 +33,7 @@ struct iterator_test;
 template<typename A, typename T>
 struct iterator_test<A, true, T> {
 
-    using iterator = const_iterator<A>;
+    using iterator = _impl::const_iterator<A>;
 
     static constexpr bool value =
         iterator_concept_test<iterator, T>::value &&
@@ -50,7 +50,7 @@ struct iterator_test<A, true, T> {
 template<typename A, typename T>
 struct iterator_test<A, false, T> {
 
-    using iterator = ::iterator<A>;
+    using iterator = _impl::iterator<A>;
 
     static constexpr bool value =
             iterator_concept_test<iterator, T>::value &&

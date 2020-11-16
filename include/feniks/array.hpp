@@ -6,9 +6,8 @@
 #include <cstddef>
 #include <cstring>
 #include <type_traits>
-#include "iterator.hpp"
-#include "type_traits.hpp"
-#include "shared_data.hpp"
+#include "feniks/impl/iterator.hpp"
+#include "feniks/impl/shared_data.hpp"
 
 namespace feniks {
 
@@ -55,8 +54,8 @@ namespace feniks {
             using data_reference         = data_type&;
             using const_data_reference   = const data_type&;
 
-            using iterator               = feniks::iterator<array>;
-            using const_iterator         = feniks::const_iterator<array<const T, D>>;
+            using iterator               = feniks::_impl::iterator<array>;
+            using const_iterator         = feniks::_impl::const_iterator<array<const T, D>>;
 
             using reverse_iterator       = std::reverse_iterator<iterator>;
             using const_reverse_iterator = std::reverse_iterator<const_iterator>;

@@ -6,15 +6,14 @@
 #include <cstring>
 #include <iterator>
 #include <type_traits>
-#include "type_traits.hpp"
-#include "shared_data.hpp"
+#include "feniks/impl/shared_data.hpp"
 
 namespace feniks {
 
     namespace _impl {
 
         template<size_t N, typename D, typename V, typename S, typename I>
-        class iterator {
+        class iterator_base {
 
         public:
 
@@ -28,25 +27,25 @@ namespace feniks {
 
         private:
 
-            using shared_data_type = shared_sized_data<std::remove_const_t<data_type>, N, size_type, difference_type>;
+            using shared_data_type = _impl::shared_sized_data<std::remove_const_t<data_type>, N, size_type, difference_type>;
 
         public:
 
-            iterator() = default;
-            iterator(const iterator& other) = default;
-            iterator(iterator&& other) noexcept = default;
-            ~iterator() = default;
+            iterator_base() = default;
+            iterator_base(const iterator_base& other) = default;
+            iterator_base(iterator_base&& other) noexcept = default;
+            ~iterator_base() = default;
 
-            iterator(shared_data_type data) : _data(std::move(data)) {}
+            iterator_base(shared_data_type data) : _data(std::move(data)) {}
 
-            iterator& operator=(iterator&& other) = default;
-            iterator& operator=(const iterator& other) = default;
+            iterator_base& operator=(iterator_base&& other) = default;
+            iterator_base& operator=(const iterator_base& other) = default;
 
-            std::strong_ordering operator<=>(const iterator& other) const {
+            std::strong_ordering operator<=>(const iterator_base& other) const {
                 return _data <=> other._data;
             }
 
-            bool operator==(const iterator& other) const {
+            bool operator==(const iterator_base& other) const {
                 return (*this) <=> other == 0;
             }
 
@@ -61,51 +60,51 @@ namespace feniks {
                     return _data[0];
             }
 
-            iterator& operator++() {
+            iterator_base& operator++() {
                 ++_data;
                 return *this;
             }
 
-            iterator operator++(int) {
+            iterator_base operator++(int) {
                 return _data++;
             }
 
-            iterator& operator--() {
+            iterator_base& operator--() {
                 --_data;
                 return *this;
             }
 
-            iterator operator--(int) {
+            iterator_base operator--(int) {
                 return _data--;
             }
 
-            iterator& operator+=(const difference_type& n) {
+            iterator_base& operator+=(const difference_type& n) {
                 _data += n;
                 return *this;
             }
 
-            iterator operator+(const difference_type& n) const {
-                iterator result(_data);
+            iterator_base operator+(const difference_type& n) const {
+                iterator_base result(_data);
                 result += n;
                 return result;
             }
 
-            friend iterator operator+(const difference_type& n, const iterator& other) {
+            friend iterator_base operator+(const difference_type& n, const iterator_base& other) {
                 return other + n;
             }
 
-            iterator& operator-=(const difference_type& n) {
+            iterator_base& operator-=(const difference_type& n) {
                 _data -= n;
                 return *this;
             }
 
-            iterator operator-(const difference_type& n) const {
-                iterator result(_data);
+            iterator_base operator-(const difference_type& n) const {
+                iterator_base result(_data);
                 result -= n;
                 return result;
             }
 
-            difference_type operator-(const iterator& other) const {
+            difference_type operator-(const iterator_base& other) const {
                 return _data - other._data;
             }
 
@@ -119,16 +118,16 @@ namespace feniks {
 
         };
 
+        template<typename Base>
+        using iterator = iterator_base<Base::dimensions, typename Base::data_type,
+                typename Base::value_type, typename Base::size_type,
+                typename Base::difference_type>;
+
+        template<typename Base>
+        using const_iterator = iterator_base<Base::dimensions, typename Base::data_type,
+                const typename Base::value_type, typename Base::size_type,
+                typename Base::difference_type>;
+
     }// namespace _impl
-
-    template<typename Base>
-    using iterator = typename _impl::iterator<Base::dimensions, typename Base::data_type,
-            typename Base::value_type, typename Base::size_type,
-            typename Base::difference_type>;
-
-    template<typename Base>
-    using const_iterator = typename _impl::iterator<Base::dimensions, typename Base::data_type,
-            const typename Base::value_type, typename Base::size_type,
-            typename Base::difference_type>;
 
 }
