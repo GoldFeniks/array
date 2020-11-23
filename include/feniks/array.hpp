@@ -2,12 +2,14 @@
 #include <span>
 #include <tuple>
 #include <memory>
+#include <vector>
 #include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <type_traits>
-#include "feniks/impl/iterator.hpp"
-#include "feniks/impl/shared_data.hpp"
+#include "impl/types.hpp"
+#include "impl/iterator.hpp"
+#include "impl/shared_data.hpp"
 
 namespace feniks {
 
@@ -108,6 +110,12 @@ namespace feniks {
                         std::copy(it->_data.data_begin(), it->_data.data_end(), d);
                     }
                 }
+            }
+
+            array(const _impl::ndvector_t<data_type, D>& data) {
+                const auto sizes = _get_vector_sizes<data_type, D>(data);
+                _data.allocate(sizes);
+                _copy_vector_values<data_type, D>(data, _data.data_begin());
             }
 
             template<typename V, typename = std::enable_if_t<std::is_same_v<std::remove_const_t<V>, data_type>>>
@@ -360,6 +368,40 @@ namespace feniks {
                 return new size_type[sizeof...(I)] { values[I]... };
             }
 
+            template<typename V, size_t N = D>
+            static sizes_t _get_vector_sizes(const _impl::ndvector_t<V, N>& data) {
+                sizes_t sizes(N);
+                _get_vector_sizes<V, N>(data, sizes);
+                _check_vector_sizes<V, N>(data, sizes);
+                return sizes;
+            }
+
+            template<typename V, size_t N = D>
+            static void _get_vector_sizes(const _impl::ndvector_t<V, N>& data, sizes_t& sizes) {
+                dynamic_assert(data.size() > 0, "Vector cannot have 0 size");
+                sizes[D - N] = data.size();
+                if constexpr (N > 1)
+                    _get_vector_sizes<V, N - 1>(data[0], sizes);
+            }
+
+            template<typename V, size_t N = D>
+            static void _check_vector_sizes(const _impl::ndvector_t<V, N>& data, sizes_t& sizes) {
+                dynamic_assert(data.size() == sizes[D - N], "Subvectors must have the same size");
+                if constexpr (N > 1)
+                    for (const auto& it : data)
+                        _check_vector_sizes<V, N - 1>(it, sizes);
+            }
+
+            template<typename V, size_t N = D>
+            void _copy_vector_values(const _impl::ndvector_t<V, N>& values, pointer data) {
+                if constexpr (N == 1)
+                    std::copy(values.data(), values.data() + values.size(), data);
+                else
+                    for (const auto& it : values) {
+                        _copy_vector_values<V, N - 1>(it, data);
+                        data += _data.strides()[D - N];
+                    }
+            }
         };
 
     }// namespace _impl

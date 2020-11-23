@@ -15,9 +15,8 @@ add_executable(array_tests
         test_iterator.cpp
         test_member_types.cpp
         ${PROJECT_DIR}/include/feniks/array.hpp
-        ${PROJECT_DIR}/include/feniks/iterator.hpp
-        ${PROJECT_DIR}/include/feniks/type_traits.hpp
-        ${PROJECT_DIR}/include/feniks/shared_data.hpp)
+        ${PROJECT_DIR}/include/feniks/impl/iterator.hpp
+        ${PROJECT_DIR}/include/feniks/impl/shared_data.hpp ../include/feniks/impl/types.hpp)
 
 target_link_libraries(array_tests GTest::GTest GTest::Main)
 

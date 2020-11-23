@@ -184,12 +184,12 @@ TEST(ArrayTest, ArrayInitialization) {
 
     TEST_ARRAY_INDEX_LOOP(i, a, 0, EXPECT_EQ(a[i], i));
 
-    std::vector vector{ 15, 6, 100, 42, 75, 23, -10, 50, 91, 87, 17, 50, 42, 64, 89, 0 };
+    std::vector vector1{ 15, 6, 100, 42, 75, 23, -10, 50, 91, 87, 17, 50, 42, 64, 89, 0 };
 
-    EXPECT_THROW(a.assign(vector.begin(), vector.end()), std::logic_error);
+    EXPECT_THROW(a.assign(vector1.begin(), vector1.end()), std::logic_error);
 
-    a.assign(vector.begin(), vector.begin() + 10);
-    TEST_ARRAY_INDEX_LOOP(i, a, 0, EXPECT_EQ(a[i], vector[i]));
+    a.assign(vector1.begin(), vector1.begin() + 10);
+    TEST_ARRAY_INDEX_LOOP(i, a, 0, EXPECT_EQ(a[i], vector1[i]));
 
     EXPECT_THROW((array<int, 2>{ { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, { 1, 2, 3 } }), std::logic_error);
 
@@ -207,6 +207,22 @@ TEST(ArrayTest, ArrayInitialization) {
     TEST_ARRAY_INDEX_LOOP(i, c, 2, EXPECT_EQ((c[{0, 0, i}]), a[i]));
     TEST_ARRAY_INDEX_LOOP(i, c, 2, EXPECT_EQ((c[{0, 1, i}]), (b[{0, i}])));
     TEST_ARRAY_INDEX_LOOP(i, c, 2, EXPECT_EQ((c[{0, 2, i}]), (b[{1, i}])));
+
+    array<int, 1> d(vector1);
+
+    TEST_ARRAY_INDEX_LOOP(i, d, 0, EXPECT_EQ(d[i], vector1[i]));
+
+    _impl::ndvector_t<int, 3> vector2{ { { 5, 1 }, { 8, 7 } }, { { 1, 6 }, { 2, 3 } } };
+    array<int, 3> e(vector2);
+
+    TEST_ARRAY_INDEX_LOOP(i, e, 0,
+                          TEST_ARRAY_INDEX_LOOP(j, e, 1,
+                                                TEST_ARRAY_INDEX_LOOP(k, e, 2,
+                                                                      EXPECT_EQ((e[{i, j, k}]), vector2[i][j][k]))));
+
+    _impl::ndvector_t<int, 2> vector3{ { 1, 2, 3, 4 }, { 5, 6, 7, 8, 9 } };
+
+    EXPECT_THROW((array<int, 2>(vector3)), std::logic_error);
 }
 
 TEST(ArrayTest, AsStrided) {
