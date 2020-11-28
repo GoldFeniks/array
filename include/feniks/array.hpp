@@ -70,7 +70,7 @@ namespace feniks {
         array() = delete;
 
         array(const array& other) : _data(other._data) {}
-        array(array&& other) : _data(std::move(other._data)) {}
+        array(array&& other) noexcept : _data(std::move(other._data)) {}
 
         array& operator=(const array& other) & {
             _data = other._data;
@@ -82,12 +82,12 @@ namespace feniks {
             return *this;
         }
 
-        array& operator=(array&& other) & {
+        array& operator=(array&& other) & noexcept {
             _data = std::move(other._data);
             return *this;
         }
 
-        array& operator=(array&& other) && {
+        array& operator=(array&& other) && noexcept {
             return std::move(*this) = other;
         }
 
@@ -110,7 +110,7 @@ namespace feniks {
             }
         }
 
-        array(const _impl::ndvector_t<data_type, D>& data) {
+        explicit array(const _impl::ndvector_t<data_type, D>& data) {
             const auto sizes = _get_vector_sizes<data_type, D>(data);
             _data.allocate(sizes);
             _copy_vector_values<data_type, D>(data, _data.data_begin());
@@ -162,16 +162,32 @@ namespace feniks {
             return *this;
         }
 
-        size_type full_size() const {
+        [[nodiscard]] size_type full_size() const {
             return _data.full_size();
         }
 
-        size_type size() const {
+        [[nodiscard]] size_type size() const {
             return _data.size();
         }
 
-        size_type size(const size_type& n) const {
+        [[nodiscard]] size_type size(const size_type& n) const {
             return _data.size(n);
+        }
+
+        array_type_t<data_reference, D - 1> front() {
+            return _data[0];
+        }
+
+        array_type_t<const_data_reference, D - 1> front() const {
+            return _data[0];
+        }
+
+        array_type_t<data_reference, D - 1> back() {
+            return _data[size() - 1];
+        }
+
+        array_type_t<const_data_reference, D - 1> back() const {
+            return _data[size() - 1];
         }
 
         array_type_t<data_reference, D - 1> operator[](const size_type& index) {
@@ -296,11 +312,11 @@ namespace feniks {
             return _data;
         }
 
-        const sizes_t& strides() const {
+        [[nodiscard]] const sizes_t& strides() const {
             return _data.strides();
         }
 
-        const sizes_t& sizes() const {
+        [[nodiscard]] const sizes_t& sizes() const {
             return _data.sizes();
         }
 
