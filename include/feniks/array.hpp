@@ -267,6 +267,11 @@ namespace feniks {
             return _data.reshape(sizes...);
         }
 
+        template<typename... S, typename = std::enable_if_t<(std::is_convertible_v<S, size_type> && ...) && (sizeof...(S) == D)>>
+        array<data_type, D> resize(const S&... sizes) const {
+            return _resize<S...>(sizes..., std::make_index_sequence<D>{});
+        };
+
         array<std::remove_const_t<data_type>, D> copy() const {
             return _data.copy();
         }
@@ -443,6 +448,24 @@ namespace feniks {
         template<size_t... I>
         void _allocate_zero(std::integer_sequence<size_type, I...>) {
             _data.template allocate((I * 0)...);
+        }
+
+        template<typename... S, size_t... I>
+        array<data_type, D> _resize(const S&... sizes, std::index_sequence<I...>) const {
+            array<data_type, D> result((sizes >= 0 ? sizes : _data.sizes()[I])...);
+            _copy_to_resized<D>(_data.data_begin(), result, result._data.data_begin());
+            return result;
+        }
+
+        template<size_t N>
+        void _copy_to_resized(const_pointer data, array<data_type, D>& other, pointer other_data) const {
+            const auto size = std::min(_data.size(N - 1), other.size(N - 1));
+            for (size_t i = 0; i < size; ++i, data += _data.strides()[N - 1], other_data += other._data.strides()[N - 1])
+                if constexpr (N == 1) {
+                    *other_data = *data;
+                } else {
+                    _copy_to_resized<N - 1>(data, other, other_data);
+                }
         }
     };
 
