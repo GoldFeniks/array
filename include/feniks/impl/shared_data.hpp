@@ -117,7 +117,7 @@ namespace feniks::_impl {
         shared_sized_data() = default;
 
         template<typename... S, typename = std::enable_if_t<(std::is_convertible_v<S, size_type> && ...) && sizeof...(S) == D>>
-        shared_sized_data(const S&... sizes) {
+        explicit shared_sized_data(const S&... sizes) {
             allocate(sizes...);
         }
 
@@ -174,7 +174,7 @@ namespace feniks::_impl {
             return *this;
         }
 
-        shared_sized_data operator++(int) {
+        const shared_sized_data operator++(int) {
             auto result = shared_sized_data(_data, _sizes, _strides);
             ++*this;
             return result;
@@ -185,7 +185,7 @@ namespace feniks::_impl {
             return *this;
         }
 
-        shared_sized_data operator--(int) {
+        const shared_sized_data operator--(int) {
             auto result = shared_sized_data(_data, _sizes, _strides);
             --*this;
             return result;

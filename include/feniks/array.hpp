@@ -90,7 +90,8 @@ namespace feniks {
         }
 
         array& operator=(array&& other) && noexcept {
-            return std::move(*this) = other;
+            std::move(*this) = other;
+            return *this;
         }
 
         template<typename... S, typename = std::enable_if_t<(std::is_convertible_v<S, size_type> && ...) && (sizeof...(S) == D)>>
@@ -161,7 +162,7 @@ namespace feniks {
         }
 
         const array* operator->() const {
-            return *this;
+            return this;
         }
 
         [[nodiscard]] size_type full_size() const {
@@ -261,7 +262,7 @@ namespace feniks {
             return _data.reshape(sizes...);
         }
 
-        template<typename...S, typename = std::enable_if_t<(std::is_convertible_v<S, size_type> && ...) && (sizeof...(S) > 0)>>
+        template<typename... S, typename = std::enable_if_t<(std::is_convertible_v<S, size_type> && ...) && (sizeof...(S) > 0)>>
         array<const data_type, sizeof...(S)> reshape(const S&... sizes) const {
             return _data.reshape(sizes...);
         }

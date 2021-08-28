@@ -34,9 +34,10 @@ namespace feniks::_impl {
         iterator_base(iterator_base&& other) noexcept = default;
         ~iterator_base() = default;
 
-        iterator_base(shared_data_type data) : _data(std::move(data)) {}
+        explicit iterator_base(const shared_data_type& data) : _data(data) {}
+        explicit iterator_base(shared_data_type&& data) noexcept : _data(std::move(data)) {}
 
-        iterator_base& operator=(iterator_base&& other) = default;
+        iterator_base& operator=(iterator_base&& other) noexcept = default;
         iterator_base& operator=(const iterator_base& other) = default;
 
         std::strong_ordering operator<=>(const iterator_base& other) const {
@@ -63,7 +64,7 @@ namespace feniks::_impl {
             return *this;
         }
 
-        iterator_base operator++(int) {
+        const iterator_base operator++(int) {
             return _data++;
         }
 
@@ -72,7 +73,7 @@ namespace feniks::_impl {
             return *this;
         }
 
-        iterator_base operator--(int) {
+        const iterator_base operator--(int) {
             return _data--;
         }
 
