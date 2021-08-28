@@ -50,9 +50,9 @@ namespace feniks::_impl {
         static shared_data<T, ST> _make(const shared_data<T, ST>& sizes, std::index_sequence<I...>) {
             constexpr auto D = sizeof...(I) + 1;
 
-            auto result = new std::remove_const_t<T>[D + 1];
+            auto result = new std::remove_const_t<T>[D];
             result[D - 1] = 1;
-            ((result[D - I - 2] = result[D - I - 1] * sizes[D - I - 2]), ...);
+            ((result[D - I - 2] = result[D - I - 1] * sizes[D - I - 1]), ...);
             return shared_data<T, ST>(result);
         }
 
