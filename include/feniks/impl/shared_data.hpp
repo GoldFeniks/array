@@ -74,7 +74,7 @@ namespace feniks::_impl {
             return shared_data(std::shared_ptr<T[]>(_data, _data.get() + offset));
         }
 
-        T& operator[](const difference_type& n) const {
+        T& operator[](const size_t& n) const {
             return _data.get()[n];
         }
 
