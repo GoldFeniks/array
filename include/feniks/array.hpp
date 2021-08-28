@@ -343,6 +343,26 @@ namespace feniks {
             return as_strided<N>(sizes_t(_array_to_pointer(sizes)), strides, offset);
         }
 
+        template<size_t N>
+        array<const data_type, N> as_strided(const sizes_t& sizes, const sizes_t& strides, const size_type& offset = 0) const {
+            return _data.template as_strided<N>(sizes, strides, offset);
+        }
+
+        template<size_t N>
+        array<const data_type, N> as_strided(const size_type(&sizes)[N], const size_type(&strides)[N], const size_type& offset = 0) const {
+            return as_strided<N>(sizes_t(_array_to_pointer(sizes)), sizes_t(_array_to_pointer(strides)), offset);
+        }
+
+        template<size_t N>
+        array<const data_type, N> as_strided(const sizes_t& sizes, const size_type(&strides)[N], const size_type& offset = 0) const {
+            return as_strided<N>(sizes, sizes_t(_array_to_pointer(strides)), offset);
+        }
+
+        template<size_t N>
+        array<const data_type, N> as_strided(const size_type(&sizes)[N], const sizes_t& strides, const size_type& offset = 0) const {
+            return as_strided<N>(sizes_t(_array_to_pointer(sizes)), strides, offset);
+        }
+
     private:
 
         shared_data_t _data;
