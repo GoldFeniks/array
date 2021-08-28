@@ -68,7 +68,7 @@ namespace feniks::_impl {
         shared_data() : _data(nullptr) {}
         explicit shared_data(T* data) : _data(data) {}
         explicit shared_data(std::shared_ptr<T[]> data) : _data(data) {}
-        explicit shared_data(const size_t& size) : shared_data(new T[size]) {}
+        explicit shared_data(const size_t& size) : shared_data(new T[size]{}) {}
 
         shared_data offset(const difference_type& offset) const {
             return shared_data(std::shared_ptr<T[]>(_data, _data.get() + offset));
