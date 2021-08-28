@@ -67,7 +67,9 @@ namespace feniks {
 
     public:
 
-        array() = delete;
+        array() {
+            _allocate_zero(std::make_integer_sequence<size_type, D>{});
+        };
 
         array(const array& other) : _data(other._data) {}
         array(array&& other) noexcept : _data(std::move(other._data)) {}
@@ -415,6 +417,11 @@ namespace feniks {
                     _copy_vector_values<V, N - 1>(it, data);
                     data += _data.strides()[D - N];
                 }
+        }
+
+        template<size_t... I>
+        void _allocate_zero(std::integer_sequence<size_type, I...>) {
+            _data.template allocate((I * 0)...);
         }
     };
 
