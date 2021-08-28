@@ -86,6 +86,12 @@ namespace feniks::_impl {
             return _data <=> other._data;
         };
 
+        shared_data copy(const size_t& size) const {
+            shared_data result(size);
+            std::copy(_data.get(), _data.get() + size, result._data.get());
+            return result;
+        }
+
     private:
 
         template<sharable_data_type, typename>

@@ -312,12 +312,12 @@ namespace feniks {
             return _data;
         }
 
-        [[nodiscard]] const sizes_t& strides() const {
-            return _data.strides();
+        [[nodiscard]] sizes_t strides() const {
+            return _data.strides().copy(D);
         }
 
-        [[nodiscard]] const sizes_t& sizes() const {
-            return _data.sizes();
+        [[nodiscard]] sizes_t sizes() const {
+            return _data.sizes().copy(D);
         }
 
         template<size_t N>
